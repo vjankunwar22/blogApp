@@ -7,6 +7,8 @@ const express_1 = __importDefault(require("express"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const blogRoutes_1 = __importDefault(require("./routes/blogRoutes"));
 const publicBlogRoutes_1 = __importDefault(require("./routes/publicBlogRoutes"));
+const node_cron_1 = __importDefault(require("node-cron"));
+const db_config_1 = __importDefault(require("./services/db.config"));
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 app.use(express_1.default.json());
@@ -16,6 +18,27 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoutes_1.default);
 app.use('/blogs', blogRoutes_1.default);
 app.use('/public', publicBlogRoutes_1.default);
+// Scheduled publishing job
+node_cron_1.default.schedule('* * * * *', async () => {
+    try {
+        const postsToPublish = await db_config_1.default.post.findMany({
+            where: {
+                published: false,
+                publish_datetime: { lte: new Date() },
+            },
+        });
+        for (const post of postsToPublish) {
+            await db_config_1.default.post.update({
+                where: { id: post.id },
+                data: { published: true },
+            });
+            console.log(`Published scheduled post: ${post.id}`);
+        }
+    }
+    catch (err) {
+        console.error('Error in scheduled publishing job:', err);
+    }
+});
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
