@@ -4,6 +4,7 @@ import blogRoutes from './routes/blogRoutes';
 import publicBlogRoutes from './routes/publicBlogRoutes';
 import cron from 'node-cron';
 import prisma from './services/db.config';
+import errorMiddleware from './middlewares/errorMiddleware';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -39,8 +40,12 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
+app.use(errorMiddleware);   
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
+
+// Register error middleware after all routes
 
 export default app;

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getPublicBlogs, searchPublicBlogs, searchBlogsByCategoryAndTags, createCategory } from '../controllers/blogController';
-import { authenticateJWT } from '../services/authMiddleware';
+import { authenticateJWT } from '../middlewares/authMiddleware';
 
 const router = Router();
 

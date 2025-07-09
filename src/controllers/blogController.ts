@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '../services/db.config';
+import { tryCatchHandler } from '../lib/helpers';
 
-export const createBlog = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const createBlog = tryCatchHandler(async (req: Request, res: Response) => {
     const { title, subtitle, description, image, publish_datetime, published, categoryName, tagNames } = req.body;
     // @ts-ignore
     const userId = req.userId;
@@ -43,13 +43,9 @@ export const createBlog = async (req: Request, res: Response): Promise<void> => 
       },
     });
     res.status(201).json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const updateBlog = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const updateBlog = tryCatchHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { title, subtitle, description, image, publish_datetime, published, categoryName, tagNames } = req.body;
     // @ts-ignore
@@ -97,13 +93,9 @@ export const updateBlog = async (req: Request, res: Response): Promise<void> => 
       },
     });
     res.json(updated);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const deleteBlog = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const deleteBlog = tryCatchHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     // @ts-ignore
     const userId = req.userId;
@@ -114,13 +106,9 @@ export const deleteBlog = async (req: Request, res: Response): Promise<void> => 
     }
     await prisma.post.delete({ where: { id: Number(id) } });
     res.json({ message: 'Blog deleted.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const publishBlog = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const publishBlog = tryCatchHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     // @ts-ignore
     const userId = req.userId;
@@ -134,13 +122,9 @@ export const publishBlog = async (req: Request, res: Response): Promise<void> =>
       data: { published: true },
     });
     res.json(updated);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const getMyBlogs = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const getMyBlogs = tryCatchHandler(async (req: Request, res: Response) => {
     // @ts-ignore
     const userId = req.userId;
     const posts = await prisma.post.findMany({
@@ -151,13 +135,9 @@ export const getMyBlogs = async (req: Request, res: Response): Promise<void> => 
       },
     });
     res.json(posts);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const approveBlog = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const approveBlog = tryCatchHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post) {
@@ -169,13 +149,9 @@ export const approveBlog = async (req: Request, res: Response): Promise<void> =>
       data: { approved: true },
     });
     res.json(updated);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const getPublicBlogs = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const getPublicBlogs = tryCatchHandler(async (req: Request, res: Response) => {
     const { categoryId, tagIds } = req.query;
     let tagIdArray: number[] | undefined = undefined;
     if (tagIds) {
@@ -203,13 +179,9 @@ export const getPublicBlogs = async (req: Request, res: Response): Promise<void>
       }
     });
     res.json(posts);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const searchPublicBlogs = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const searchPublicBlogs = tryCatchHandler(async (req: Request, res: Response) => {
     const { query, categoryId, tagIds } = req.query;
     let tagIdArray: number[] | undefined = undefined;
     if (tagIds) {
@@ -246,13 +218,9 @@ export const searchPublicBlogs = async (req: Request, res: Response): Promise<vo
       }
     });
     res.json(posts);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const searchBlogsByCategoryAndTags = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const searchBlogsByCategoryAndTags = tryCatchHandler(async (req: Request, res: Response) => {
     const { categoryName, tagNames } = req.query;
     let categoryId: number | undefined = undefined;
     if (categoryName && typeof categoryName === 'string') {
@@ -299,13 +267,9 @@ export const searchBlogsByCategoryAndTags = async (req: Request, res: Response):
       }
     });
     res.json(posts);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-};
+});
 
-export const createCategory = async (req: Request, res: Response): Promise<void> => {
-  try {
+export const createCategory = tryCatchHandler(async (req: Request, res: Response) => {
     const { name } = req.body;
     if (!name || typeof name !== 'string') {
       res.status(400).json({ message: 'Category name is required.' });
@@ -318,7 +282,4 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
     }
     const category = await prisma.category.create({ data: { name } });
     res.status(201).json(category);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-  }
-}; 
+}); 

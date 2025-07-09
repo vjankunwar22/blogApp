@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createBlog, updateBlog, deleteBlog, publishBlog, getMyBlogs, approveBlog, createCategory } from '../controllers/blogController';
-import { authenticateJWT, isAdmin } from '../services/authMiddleware';
+import { authenticateJWT, isAdmin } from '../middlewares/authMiddleware';
 
 const router = Router();
 
