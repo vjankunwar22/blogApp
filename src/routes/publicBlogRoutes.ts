@@ -1,9 +1,12 @@
 import { Router } from 'express';
-import { getPublicBlogs, searchPublicBlogs } from '../controllers/blogController';
+import { getPublicBlogs, searchPublicBlogs, searchBlogsByCategoryAndTags, createCategory } from '../controllers/blogController';
+import { authenticateJWT } from '../services/authMiddleware';
 
 const router = Router();
 
 router.get('/blogs', getPublicBlogs);
 router.get('/blogs/search', searchPublicBlogs);
+router.get('/blogs/search-by-category-tags', searchBlogsByCategoryAndTags);
+
 
 export default router; 

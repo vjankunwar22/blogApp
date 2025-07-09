@@ -10,4 +10,5 @@ router.put('/:id', authMiddleware_1.authenticateJWT, blogController_1.updateBlog
 router.delete('/:id', authMiddleware_1.authenticateJWT, blogController_1.deleteBlog);
 router.patch('/:id/publish', authMiddleware_1.authenticateJWT, blogController_1.publishBlog);
 router.patch('/:id/approve', authMiddleware_1.authenticateJWT, authMiddleware_1.isAdmin, blogController_1.approveBlog);
+router.post('/categories', authMiddleware_1.authenticateJWT, blogController_1.createCategory);
 exports.default = router;

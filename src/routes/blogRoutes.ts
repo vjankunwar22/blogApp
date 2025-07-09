@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createBlog, updateBlog, deleteBlog, publishBlog, getMyBlogs, approveBlog } from '../controllers/blogController';
+import { createBlog, updateBlog, deleteBlog, publishBlog, getMyBlogs, approveBlog, createCategory } from '../controllers/blogController';
 import { authenticateJWT, isAdmin } from '../services/authMiddleware';
 
 const router = Router();
@@ -10,5 +10,6 @@ router.put('/:id', authenticateJWT, updateBlog);
 router.delete('/:id', authenticateJWT, deleteBlog);
 router.patch('/:id/publish', authenticateJWT, publishBlog);
 router.patch('/:id/approve', authenticateJWT, isAdmin, approveBlog);
+router.post('/categories', authenticateJWT, createCategory);
 
 export default router;

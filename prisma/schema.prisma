@@ -24,6 +24,27 @@ model User {
   created_at DateTime  @default(now())
 }
 
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[]
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts PostTag[]
+}
+
+model PostTag {
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId Int
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId  Int
+
+  @@id([postId, tagId])
+}
+
 model Post {
   id            Int       @id @default(autoincrement())
   user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -37,6 +58,10 @@ model Post {
   published     Boolean   @default(false)
   approved      Boolean   @default(false)
   image         String?
+  publish_datetime DateTime? // Scheduled publish datetime
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+  tags       PostTag[]
 }
 
 model Comment {
