@@ -2,11 +2,12 @@ import { Request, Response } from 'express';
 import prisma from '../services/db.config';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { tryCatchHandler } from '../lib/helpers';
+import { HttpError } from '../types/error';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
-export const register = async (req: Request, res: Response) => {
-  try {
+export const register = tryCatchHandler(async (req: Request, res: Response) => {
     const { name, email, password, profileImage, role } = req.body;
     if (!email || !password) {
       res.status(400).json({ message: 'Email and password are required.' });
@@ -29,14 +30,9 @@ export const register = async (req: Request, res: Response) => {
     });
     res.status(201).json({ message: 'User registered successfully.' });
     return;
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-    return;
-  }
-};
+});
 
-export const login = async (req: Request, res: Response) => {
-  try {
+export const login = tryCatchHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
     if (!email || !password) {
       res.status(400).json({ message: 'Email and password are required.' });
@@ -55,14 +51,9 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
     res.status(200).json({ token });
     return;
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-    return;
-  }
-};
+});
 
-export const getProfile = async (req: Request, res: Response) => {
-  try {
+export const getProfile = tryCatchHandler(async (req: Request, res: Response) => {
     // @ts-ignore
     const userId = req.userId;
     const user = await prisma.user.findUnique({
@@ -75,24 +66,16 @@ export const getProfile = async (req: Request, res: Response) => {
     }
     res.status(200).json(user);
     return;
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-    return;
-  }
-};
+});
 
-export const createUser = async (req: Request, res: Response) => {
-
-  try {
+export const createUser = tryCatchHandler(async (req: Request, res: Response) => {
     const { name, email, password, profileImage, role } = req.body;
     if (!email || !password) {
-      res.status(400).json({ message: 'Email and password are required.' });
-      return;
+      throw new HttpError('BAD_REQUEST', 'Email and password are required.');
     }
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      res.status(409).json({ message: 'User already exists.' });
-      return;
+      throw new HttpError('BAD_REQUEST', 'User already exists.');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -106,14 +89,9 @@ export const createUser = async (req: Request, res: Response) => {
     });
     res.status(201).json({ message: 'User created successfully.', user });
     return;
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-    return;
-  }
-};
+});
 
-export const updateUser = async (req: Request, res: Response) => {
-  try {
+export const updateUser = tryCatchHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, email, password, profileImage, role } = req.body;
     const data: any = { name, email, profileImage, role };
@@ -126,33 +104,19 @@ export const updateUser = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: 'User updated successfully.', user });
     return;
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-    return;
-  }
-};
+});
 
-export const deleteUser = async (req: Request, res: Response) => {
-  try {
+export const deleteUser = tryCatchHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     await prisma.user.delete({ where: { id: Number(id) } });
     res.status(200).json({ message: 'User deleted successfully.' });
     return;
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-    return;
-  }
-};
+});
 
-export const getAllUsers = async (req: Request, res: Response) => {
-  try {
+export const getAllUsers = tryCatchHandler(async (req: Request, res: Response) => {
     const users = await prisma.user.findMany({
       select: { id: true, name: true, email: true, profileImage: true, role: true, created_at: true }
     });
     res.status(200).json(users);
     return;
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error.' });
-    return;
-  }
-}; 
+});

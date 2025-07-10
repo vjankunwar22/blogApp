@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { register, login, getProfile, createUser, updateUser, deleteUser, getAllUsers } from '../controllers/authController';
-import { authenticateJWT, isAdmin } from '../services/authMiddleware';
+import { authenticateJWT, isAdmin } from '../middlewares/authMiddleware';
 
 
 

@@ -4,6 +4,7 @@ import blogRoutes from './routes/blogRoutes';
 import publicBlogRoutes from './routes/publicBlogRoutes';
 import cron from 'node-cron';
 import prisma from './services/db.config';
+import errorMiddleware from './middlewares/errorMiddleware';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,10 +22,15 @@ app.use('/public', publicBlogRoutes);
 // Scheduled publishing job
 cron.schedule('* * * * *', async () => {
   try {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     const postsToPublish = await prisma.post.findMany({
       where: {
         published: false,
-        publish_datetime: { lte: new Date() },
+        publish_datetime: {
+          gte: oneHourAgo,
+          lte: now,
+        },
       },
     });
     for (const post of postsToPublish) {
@@ -39,8 +45,12 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
+app.use(errorMiddleware);   
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
+
+// Register error middleware after all routes
 
 export default app;
