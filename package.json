@@ -6,7 +6,8 @@
     "bcrypt": "^6.0.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "node-cron": "^4.2.0"
+    "node-cron": "^4.2.0",
+    "openai": "^5.8.3"
   },
   "scripts": {
     "build": "tsc",

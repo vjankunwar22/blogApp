@@ -22,10 +22,15 @@ app.use('/public', publicBlogRoutes);
 // Scheduled publishing job
 cron.schedule('* * * * *', async () => {
   try {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     const postsToPublish = await prisma.post.findMany({
       where: {
         published: false,
-        publish_datetime: { lte: new Date() },
+        publish_datetime: {
+          gte: oneHourAgo,
+          lte: now,
+        },
       },
     });
     for (const post of postsToPublish) {

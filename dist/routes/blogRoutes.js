@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const blogController_1 = require("../controllers/blogController");
-const authMiddleware_1 = require("../services/authMiddleware");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
 const router = (0, express_1.Router)();
 router.get('/my', authMiddleware_1.authenticateJWT, blogController_1.getMyBlogs);
 router.post('/', authMiddleware_1.authenticateJWT, blogController_1.createBlog);
@@ -11,4 +11,7 @@ router.delete('/:id', authMiddleware_1.authenticateJWT, blogController_1.deleteB
 router.patch('/:id/publish', authMiddleware_1.authenticateJWT, blogController_1.publishBlog);
 router.patch('/:id/approve', authMiddleware_1.authenticateJWT, authMiddleware_1.isAdmin, blogController_1.approveBlog);
 router.post('/categories', authMiddleware_1.authenticateJWT, blogController_1.createCategory);
+router.patch('/:id/like', authMiddleware_1.authenticateJWT, blogController_1.likeBlog);
+router.post('/:id/comment', authMiddleware_1.authenticateJWT, blogController_1.commentBlog);
+router.post('/generate-ai', authMiddleware_1.authenticateJWT, blogController_1.generateBlogWithAI);
 exports.default = router;

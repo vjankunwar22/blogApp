@@ -22,6 +22,7 @@ model User {
   post       Post[]
   comment    Comment[]
   created_at DateTime  @default(now())
+  like      Like[]
 }
 
 model Category {
@@ -62,6 +63,15 @@ model Post {
   category   Category? @relation(fields: [categoryId], references: [id])
   categoryId Int?
   tags       PostTag[]
+  likes     Like[]
+
+  @@index([published])
+  @@index([approved])
+  @@index([categoryId])
+  @@index([user_id])
+  @@index([title])
+  @@index([subtitle])
+  @@index([description])
 }
 
 model Comment {
@@ -72,4 +82,15 @@ model Comment {
   user_id    Int
   comment    String
   created_at DateTime @default(now())
+}
+
+model Like {
+  id      Int   @id @default(autoincrement())
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  Int
+  post    Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  Int
+  created_at DateTime @default(now())
+
+  @@unique([userId, postId])
 }
