@@ -9,6 +9,7 @@ const blogRoutes_1 = __importDefault(require("./routes/blogRoutes"));
 const publicBlogRoutes_1 = __importDefault(require("./routes/publicBlogRoutes"));
 const node_cron_1 = __importDefault(require("node-cron"));
 const db_config_1 = __importDefault(require("./services/db.config"));
+const errorMiddleware_1 = __importDefault(require("./middlewares/errorMiddleware"));
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 app.use(express_1.default.json());
@@ -21,10 +22,15 @@ app.use('/public', publicBlogRoutes_1.default);
 // Scheduled publishing job
 node_cron_1.default.schedule('* * * * *', async () => {
     try {
+        const now = new Date();
+        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
         const postsToPublish = await db_config_1.default.post.findMany({
             where: {
                 published: false,
-                publish_datetime: { lte: new Date() },
+                publish_datetime: {
+                    gte: oneHourAgo,
+                    lte: now,
+                },
             },
         });
         for (const post of postsToPublish) {
@@ -39,7 +45,9 @@ node_cron_1.default.schedule('* * * * *', async () => {
         console.error('Error in scheduled publishing job:', err);
     }
 });
+app.use(errorMiddleware_1.default);
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
+// Register error middleware after all routes
 exports.default = app;
