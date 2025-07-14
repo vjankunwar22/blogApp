@@ -2,18 +2,21 @@
   "dependencies": {
     "@prisma/client": "^6.11.1",
     "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "node-cron": "^4.2.0",
-    "openai": "^5.8.3"
+    "node-cron": "^4.2.1",
+    "openai": "^5.8.3",
+    "zod": "^4.0.5"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
     "dev": "ts-node src/app.ts",
-    "prestart": "npm run build"
+    "prestart": "pnpm run build"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
