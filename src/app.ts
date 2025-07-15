@@ -5,14 +5,17 @@ import publicBlogRoutes from "./routes/publicBlogRoutes";
 import cron from "node-cron";
 import prisma from "./services/db.config";
 import errorMiddleware from "./middlewares/errorMiddleware";
-import cors from "cors"
-
+import cors from "cors";
+import path from "path";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
+
+// Serve uploads directory statically
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");

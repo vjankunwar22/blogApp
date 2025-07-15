@@ -35,7 +35,7 @@ export const authenticateJWT = (
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   // @ts-ignore
-  if (req.role !== "ADMIN") {
+  if (!req.user || req.user.role !== "ADMIN") {
     res.status(403).json({ message: "Forbidden: Admins only." });
     return;
   }

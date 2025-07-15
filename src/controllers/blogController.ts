@@ -3,31 +3,20 @@ import prisma from "../services/db.config";
 import { tryCatchHandler } from "../lib/helpers";
 import openai from "../services/openai";
 import { SessionUser } from "../types/request";
-import {
-  createBlogSchema,
-  updateBlogSchema,
-} from "../validations/blogValidation";
 
 export const createBlog = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const parseResult = createBlogSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: parseResult.error.issues,
-      });
-      return;
-    }
     const {
       title,
       subtitle,
       description,
-      image,
       publish_datetime,
       published,
       categoryName,
       tagNames,
-    } = parseResult.data;
+    } = req.body;
+    // Use uploaded file if present
+    const image = req.file ? req.file.filename : undefined;
     // @ts-ignore
     const user = req.user as SessionUser;
     let categoryId: number | undefined = undefined;
@@ -86,27 +75,20 @@ export const createBlog = tryCatchHandler(
 
 export const updateBlog = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const parseResult = updateBlogSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: parseResult.error.issues,
-      });
-      return;
-    }
     const {
       title,
       subtitle,
       description,
-      image,
       publish_datetime,
       published,
       categoryName,
       tagNames,
-    } = parseResult.data;
+    } = req.body;
+    // Use uploaded file if present
+    const image = req.file ? req.file.filename : undefined;
     const { id } = req.params;
     // @ts-ignore
-    const userId = req.userId;
+    const userId = req.user.id;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post || post.user_id !== userId) {
       res.status(403).json({ message: "Forbidden: Not your blog." });
@@ -136,20 +118,21 @@ export const updateBlog = tryCatchHandler(
         tagConnectArr.push({ tagId: tag.id });
       }
     }
+    const updateData: any = {
+      title,
+      subtitle,
+      description,
+      publish_datetime: publish_datetime
+        ? new Date(publish_datetime)
+        : undefined,
+      published: published === true ? true : false,
+      categoryId,
+      tags: tagConnectArr.length > 0 ? { create: tagConnectArr } : undefined,
+    };
+    if (image) updateData.image = image;
     const updated = await prisma.post.update({
       where: { id: Number(id) },
-      data: {
-        title,
-        subtitle,
-        description,
-        image,
-        publish_datetime: publish_datetime
-          ? new Date(publish_datetime)
-          : undefined,
-        published: published === true ? true : false,
-        categoryId,
-        tags: tagConnectArr.length > 0 ? { create: tagConnectArr } : undefined,
-      },
+      data: updateData,
       include: {
         category: true,
         tags: { include: { tag: true } },
@@ -163,7 +146,7 @@ export const deleteBlog = tryCatchHandler(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     // @ts-ignore
-    const userId = req.userId;
+    const userId = req.user.id;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post || post.user_id !== userId) {
       res.status(403).json({ message: "Forbidden: Not your blog." });
@@ -178,7 +161,7 @@ export const publishBlog = tryCatchHandler(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     // @ts-ignore
-    const userId = req.userId;
+    const userId = req.user.id;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post || post.user_id !== userId) {
       res.status(403).json({ message: "Forbidden: Not your blog." });
@@ -195,7 +178,7 @@ export const publishBlog = tryCatchHandler(
 export const getMyBlogs = tryCatchHandler(
   async (req: Request, res: Response) => {
     // @ts-ignore
-    const userId = req.userId;
+    const userId = req.user.id;
     const posts = await prisma.post.findMany({
       where: { user_id: userId },
       include: {
@@ -424,7 +407,7 @@ export const createCategory = tryCatchHandler(
 export const likeBlog = tryCatchHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   // @ts-ignore
-  const userId = req.userId;
+  const userId = req.user.id;
   const postId = Number(id);
 
   // Check if the like already exists
@@ -460,7 +443,7 @@ export const commentBlog = tryCatchHandler(
     const { id } = req.params;
     const { comment } = req.body;
     // @ts-ignore
-    const userId = req.userId;
+    const userId = req.user.id;
     const postId = Number(id);
 
     if (!comment || typeof comment !== "string" || comment.trim() === "") {
