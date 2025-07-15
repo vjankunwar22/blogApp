@@ -12,3 +12,4 @@ export const createBlogSchema = z.object({
 });
 
 export const updateBlogSchema = createBlogSchema.partial();
+

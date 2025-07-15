@@ -15,15 +15,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 export const register = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const parseResult = registerSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: parseResult.error.issues,
-      });
-      return;
-    }
-    const { name, email, password, profileImage, role } = parseResult.data;
+    // Validation handled by middleware
+    const { name, email, password, role } = req.body;
+    // Use uploaded file if present
+    const profileImage = req.file ? req.file.filename : req.body.profileImage;
     if (!email || !password) {
       res.status(400).json({ message: "Email and password are required." });
       return;
@@ -50,15 +45,8 @@ export const register = tryCatchHandler(
 
 export const login = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const parseResult = loginSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: parseResult.error.issues,
-      });
-      return;
-    }
-    const { email, password } = parseResult.data;
+    // Validation handled by middleware
+    const { email, password } = req.body;
     if (!email || !password) {
       res.status(400).json({ message: "Email and password are required." });
       return;
@@ -84,7 +72,7 @@ export const login = tryCatchHandler(
 export const getProfile = tryCatchHandler(
   async (req: Request, res: Response) => {
     // @ts-ignore
-    const userId = req.userId;
+    const userId = req.user.id;
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -106,14 +94,8 @@ export const getProfile = tryCatchHandler(
 
 export const createUser = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const parseResult = createUserSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      throw new HttpError(
-        "BAD_REQUEST",
-        "Validation failed: " + JSON.stringify(parseResult.error.issues)
-      );
-    }
-    const { name, email, password, profileImage, role } = parseResult.data;
+    // Validation handled by middleware
+    const { name, email, password, profileImage, role } = req.body;
     if (!email || !password) {
       throw new HttpError("BAD_REQUEST", "Email and password are required.");
     }
@@ -138,16 +120,11 @@ export const createUser = tryCatchHandler(
 
 export const updateUser = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const parseResult = updateUserSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: parseResult.error.issues,
-      });
-      return;
-    }
-    const { name, email, password, profileImage, role } = parseResult.data;
+    // Validation handled by middleware
+    const { name, email, password, role } = req.body;
     const { id } = req.params;
+    // Use uploaded file if present
+    const profileImage = req.file ? req.file.filename : req.body.profileImage;
     const data: any = { name, email, profileImage, role };
     if (password) {
       data.password = await bcrypt.hash(password, 10);
