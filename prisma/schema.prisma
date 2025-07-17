@@ -16,7 +16,7 @@ model User {
   id         Int       @id @default(autoincrement())
   name       String?
   email      String    @unique
-  password   String?
+  password   String
   profileImage String?
   role       Role      @default(BLOGGER)
   post       Post[]

@@ -7,6 +7,7 @@ import {
   updateUser,
   deleteUser,
   getAllUsers,
+  updateOwnProfile,
 } from "../controllers/authController";
 import { authenticateJWT, isAdmin } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validateRequest";
@@ -15,6 +16,8 @@ import {
   loginSchema,
   createUserSchema,
   updateUserSchema,
+  deleteUserSchema,
+  userProfileSchema,
 } from "../validations/userValidation";
 import { upload } from "../middlewares/uploads";
 
@@ -26,8 +29,11 @@ router.post(
   validateRequest(registerSchema),
   register
 );
+
 router.post("/login", validateRequest(loginSchema), login);
+
 router.get("/profile", authenticateJWT, getProfile);
+
 router.post(
   "/user",
   authenticateJWT,
@@ -35,14 +41,35 @@ router.post(
   validateRequest(createUserSchema),
   createUser
 );
+
 router.put(
   "/user/:id",
   authenticateJWT,
   upload.single("profileImage"),
   validateRequest(updateUserSchema),
+  isAdmin,
   updateUser
 );
-router.delete("/user/:id", authenticateJWT, isAdmin, deleteUser);
-router.get("/users", authenticateJWT,isAdmin, getAllUsers);
+
+router.delete(
+  "/user/:id",
+  authenticateJWT,
+  isAdmin,
+  validateRequest(deleteUserSchema),
+  deleteUser
+);
+
+router.put(
+  "/updateuser",
+  authenticateJWT,
+  upload.single("profileImage"),
+  updateOwnProfile,
+  validateRequest(userProfileSchema)
+);
+
+
+
+
+router.get("/users", authenticateJWT, isAdmin, getAllUsers);
 
 export default router;
