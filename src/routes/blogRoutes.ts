@@ -36,6 +36,7 @@ router.put(
   validateRequest(updateBlogSchema),
   updateBlog
 );
+
 router.delete("/:id", authenticateJWT, deleteBlog);
 router.patch("/:id/publish", authenticateJWT, publishBlog);
 router.patch("/:id/approve", authenticateJWT, isAdmin, approveBlog);

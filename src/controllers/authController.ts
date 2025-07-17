@@ -4,12 +4,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { tryCatchHandler } from "../lib/helpers";
 import { HttpError } from "../types/error";
-import {
-  registerSchema,
-  loginSchema,
-  createUserSchema,
-  updateUserSchema,
-} from "../validations/userValidation";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
@@ -19,16 +13,21 @@ export const register = tryCatchHandler(
     const { name, email, password, role } = req.body;
     // Use uploaded file if present
     const profileImage = req.file ? req.file.filename : req.body.profileImage;
+
     if (!email || !password) {
       res.status(400).json({ message: "Email and password are required." });
       return;
     }
+
     const existingUser = await prisma.user.findUnique({ where: { email } });
+
     if (existingUser) {
       res.status(409).json({ message: "User already exists." });
       return;
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await prisma.user.create({
       data: {
         name,
@@ -38,6 +37,7 @@ export const register = tryCatchHandler(
         role: role === "ADMIN" ? "ADMIN" : "BLOGGER",
       },
     });
+
     res.status(201).json({ message: "User registered successfully." });
     return;
   }
@@ -47,20 +47,26 @@ export const login = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
     // Validation handled by middleware
     const { email, password } = req.body;
+
     if (!email || !password) {
       res.status(400).json({ message: "Email and password are required." });
       return;
     }
+
     const user = await prisma.user.findUnique({ where: { email } });
+
     if (!user || !user.password) {
-      res.status(401).json({ message: "Invalid credentials." });
+      res.status(401).json({ message: "User not found." });
       return;
     }
+
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       res.status(401).json({ message: "Invalid credentials." });
       return;
     }
+
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: "1d",
     });
@@ -134,6 +140,29 @@ export const updateUser = tryCatchHandler(
       data,
     });
     res.status(200).json({ message: "User updated successfully.", user });
+    return;
+  }
+);
+
+export const updateOwnProfile = tryCatchHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    // @ts-ignore
+    const userId = req.user.id;
+    const { name, email, password } = req.body;
+    // Use uploaded file if present
+    const profileImage = req.file ? req.file.filename : req.body.profileImage;
+    const data: any = {};
+    if (name) data.name = name;
+    if (email) data.email = email;
+    if (profileImage) data.profileImage = profileImage;
+    if (password) {
+      data.password = await bcrypt.hash(password, 10);
+    }
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+    res.status(200).json({ message: "Profile updated successfully.", user });
     return;
   }
 );

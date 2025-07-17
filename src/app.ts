@@ -1,12 +1,15 @@
 import express, { Request, Response } from "express";
 import authRoutes from "./routes/authRoutes";
 import blogRoutes from "./routes/blogRoutes";
+
 import publicBlogRoutes from "./routes/publicBlogRoutes";
 import cron from "node-cron";
 import prisma from "./services/db.config";
 import errorMiddleware from "./middlewares/errorMiddleware";
 import cors from "cors";
 import path from "path";
+const swaggerUi = require("swagger-ui-express");
+import YAML from "yamljs";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,6 +19,9 @@ app.use(cors());
 
 // Serve uploads directory statically
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+const swaggerDocument = YAML.load(path.join(__dirname, "../docs/swagger.yaml"));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");
