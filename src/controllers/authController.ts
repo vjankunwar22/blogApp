@@ -15,15 +15,13 @@ export const register = tryCatchHandler(
     const profileImage = req.file ? req.file.filename : req.body.profileImage;
 
     if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required." });
-      return;
+     throw new HttpError("BAD_REQUEST" , "Email and password is required");
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      res.status(409).json({ message: "User already exists." });
-      return;
+      throw new HttpError("BAD_REQUEST","User Already Exist");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -43,28 +41,29 @@ export const register = tryCatchHandler(
   }
 );
 
+
+
+
+
 export const login = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
     // Validation handled by middleware
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required." });
-      return;
+      throw new HttpError("BAD_REQUEST" , "Email and password is required");
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !user.password) {
-      res.status(401).json({ message: "User not found." });
-      return;
+      throw new HttpError("UNAUTHORIZED" ,"User not found .");
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      res.status(401).json({ message: "Invalid credentials." });
-      return;
+      throw new HttpError("UNAUTHORIZED" ,"Invalid Credintials");
     }
 
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
@@ -90,8 +89,7 @@ export const getProfile = tryCatchHandler(
       },
     });
     if (!user) {
-      res.status(404).json({ message: "User not found." });
-      return;
+     throw new HttpError("NOT_FOUND" ,"User not found.")
     }
     res.status(200).json(user);
     return;
