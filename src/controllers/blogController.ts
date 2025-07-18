@@ -3,6 +3,8 @@ import prisma from "../services/db.config";
 import { tryCatchHandler } from "../lib/helpers";
 import openai from "../services/openai";
 import { SessionUser } from "../types/request";
+import { HttpError } from "../types/error";
+import Fuse from "fuse.js";
 
 export const createBlog = tryCatchHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -91,8 +93,7 @@ export const updateBlog = tryCatchHandler(
     const userId = req.user.id;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post || post.user_id !== userId) {
-      res.status(403).json({ message: "Forbidden: Not your blog." });
-      return;
+      throw new HttpError("FORBIDDEN", "Forbidden : Not Your Blog.");
     }
     let categoryId: number | undefined = undefined;
     if (categoryName && typeof categoryName === "string") {
@@ -149,8 +150,7 @@ export const deleteBlog = tryCatchHandler(
     const userId = req.user.id;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post || post.user_id !== userId) {
-      res.status(403).json({ message: "Forbidden: Not your blog." });
-      return;
+      throw new HttpError("FORBIDDEN", "Forbidden : Not Your Blog.");
     }
     await prisma.post.delete({ where: { id: Number(id) } });
     res.json({ message: "Blog deleted." });
@@ -164,8 +164,7 @@ export const publishBlog = tryCatchHandler(
     const userId = req.user.id;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post || post.user_id !== userId) {
-      res.status(403).json({ message: "Forbidden: Not your blog." });
-      return;
+      throw new HttpError("FORBIDDEN", "Forbidden : Not Your Blog.");
     }
     const updated = await prisma.post.update({
       where: { id: Number(id) },
@@ -195,8 +194,7 @@ export const approveBlog = tryCatchHandler(
     const { id } = req.params;
     const post = await prisma.post.findUnique({ where: { id: Number(id) } });
     if (!post) {
-      res.status(404).json({ message: "Blog not found." });
-      return;
+      throw new HttpError("NOT_FOUND", "Blog not found");
     }
     const updated = await prisma.post.update({
       where: { id: Number(id) },
@@ -262,8 +260,7 @@ export const searchPublicBlogs = tryCatchHandler(
       }
     }
     if (!query || typeof query !== "string") {
-      res.status(400).json({ message: "Query parameter is required." });
-      return;
+      throw new HttpError("BAD_REQUEST", "Query parameter is requireed");
     }
     const skip = (Number(page) - 1) * Number(pageSize);
     const take = Number(pageSize);
@@ -391,13 +388,11 @@ export const createCategory = tryCatchHandler(
   async (req: Request, res: Response) => {
     const { name } = req.body;
     if (!name || typeof name !== "string") {
-      res.status(400).json({ message: "Category name is required." });
-      return;
+      throw new HttpError("BAD_REQUEST", "Category name is required");
     }
     const existing = await prisma.category.findUnique({ where: { name } });
     if (existing) {
-      res.status(409).json({ message: "Category already exists." });
-      return;
+      throw new HttpError("CONFLICT", "Category already exist");
     }
     const category = await prisma.category.create({ data: { name } });
     res.status(201).json(category);

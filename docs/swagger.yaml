@@ -514,7 +514,7 @@ paths:
       tags: [PublicBlogs]
       parameters:
         - in: query
-          name: q
+          name: query
           schema:
             type: string
           required: false
